@@ -30,6 +30,7 @@ builder.Services.AddSingleton<DatabaseService>();
 builder.Services.AddScoped<GroupRepository>();
 builder.Services.AddScoped<FirmwareRepository>();
 builder.Services.AddScoped<DeviceRepository>();
+builder.Services.AddScoped<DeviceTypeRepository>();
 
 var app = builder.Build();
 

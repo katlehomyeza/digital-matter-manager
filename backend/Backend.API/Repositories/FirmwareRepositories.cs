@@ -16,41 +16,62 @@ namespace Backend.API.Repositories
         public async Task<IEnumerable<Firmware>> GetAllAsync()
         {
             using var connection = _db.CreateConnection();
-            var sql = "SELECT firmware_id, version, created_at, name, device_type_id FROM firmware";
+            var sql = @"
+                SELECT 
+                    firmware_id as FirmwareId, 
+                    version as Version, 
+                    created_at as CreatedAt, 
+                    name as Name, 
+                    device_type_id as DeviceTypeId 
+                FROM firmware";
             return await connection.QueryAsync<Firmware>(sql);
         }
 
         public async Task<Firmware?> GetByIdAsync(int id)
         {
             using var connection = _db.CreateConnection();
-            var sql = "SELECT firmware_id, version, name, device_type_id, created_at FROM firmware WHERE firmware_id = @Id";
+            var sql = @"
+                SELECT 
+                    firmware_id as FirmwareId, 
+                    version as Version, 
+                    name as Name, 
+                    device_type_id as DeviceTypeId, 
+                    created_at as CreatedAt 
+                FROM firmware 
+                WHERE firmware_id = @Id";
             return await connection.QueryFirstOrDefaultAsync<Firmware>(sql, new { Id = id });
         }
-public async Task<Firmware> CreateAsync(Firmware firmware)
-{
-    using var connection = _db.CreateConnection();
-    var sql = @"
-        INSERT INTO firmware (version, name, device_type_id, created_at) 
-        VALUES (@Version, @Name, @DeviceTypeId, @CreatedAt) 
-        RETURNING firmware_id, version, name, device_type_id, created_at";
 
-    firmware.CreatedAt = DateTime.UtcNow;
-    return await connection.QuerySingleAsync<Firmware>(sql, firmware);
-}
+        public async Task<Firmware> CreateAsync(Firmware firmware)
+        {
+            using var connection = _db.CreateConnection();
+            var sql = @"
+                INSERT INTO firmware (version, name, device_type_id, created_at) 
+                VALUES (@Version, @Name, @DeviceTypeId, @CreatedAt) 
+                RETURNING 
+                    firmware_id as FirmwareId, 
+                    version as Version, 
+                    name as Name, 
+                    device_type_id as DeviceTypeId, 
+                    created_at as CreatedAt";
 
-public async Task<bool> UpdateAsync(Firmware firmware)
-{
-    using var connection = _db.CreateConnection();
-    var sql = @"
-        UPDATE firmware 
-        SET version = @Version,
-            name = @Name,
-            device_type_id = @DeviceTypeId
-        WHERE firmware_id = @FirmwareId";
+            firmware.CreatedAt = DateTime.UtcNow;
+            return await connection.QuerySingleAsync<Firmware>(sql, firmware);
+        }
 
-    var rows = await connection.ExecuteAsync(sql, firmware);
-    return rows > 0;
-}
+        public async Task<bool> UpdateAsync(Firmware firmware)
+        {
+            using var connection = _db.CreateConnection();
+            var sql = @"
+                UPDATE firmware 
+                SET version = @Version,
+                    name = @Name,
+                    device_type_id = @DeviceTypeId
+                WHERE firmware_id = @FirmwareId";
+
+            var rows = await connection.ExecuteAsync(sql, firmware);
+            return rows > 0;
+        }
 
         public async Task<bool> DeleteAsync(int id)
         {
