@@ -8,9 +8,9 @@ namespace Backend.API.Controllers
     [Route("api/[controller]")]
     public class DeviceTypesController : ControllerBase
     {
-        private readonly IDeviceTypeRepository _deviceTypeRepository;
+        private readonly DeviceTypeRepository _deviceTypeRepository;
 
-        public DeviceTypesController(IDeviceTypeRepository deviceTypeRepository)
+        public DeviceTypesController(DeviceTypeRepository deviceTypeRepository)
         {
             _deviceTypeRepository = deviceTypeRepository;
         }
@@ -26,12 +26,12 @@ namespace Backend.API.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var deviceType = await _deviceTypeRepository.GetByIdAsync(id);
-            
+
             if (deviceType == null)
             {
                 return NotFound();
             }
-            
+
             return Ok(deviceType);
         }
 
@@ -56,14 +56,14 @@ namespace Backend.API.Controllers
             {
                 return BadRequest();
             }
-            
+
             var updated = await _deviceTypeRepository.UpdateAsync(deviceType);
-            
+
             if (!updated)
             {
                 return NotFound();
             }
-            
+
             return NoContent();
         }
 
@@ -71,19 +71,19 @@ namespace Backend.API.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var deviceCount = await _deviceTypeRepository.GetDeviceCountByTypeIdAsync(id);
-            
+
             if (deviceCount > 0)
             {
                 return BadRequest("Cannot delete device type that is assigned to devices");
             }
-            
+
             var deleted = await _deviceTypeRepository.DeleteAsync(id);
-            
+
             if (!deleted)
             {
                 return NotFound();
             }
-            
+
             return NoContent();
         }
     }

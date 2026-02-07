@@ -36,7 +36,7 @@ namespace Backend.API.Controllers
         public async Task<IActionResult> CreateGroup(Group group)
         {
             var createdGroup = await _groupRepository.CreateAsync(group);
-            return CreatedAtAction(nameof(GetById), new { id = created.GroupId }, createdGroup);
+            return CreatedAtAction(nameof(GetGroupById), new { id = createdGroup.GroupId }, createdGroup);
         }
 
         [HttpPut("{id}")]

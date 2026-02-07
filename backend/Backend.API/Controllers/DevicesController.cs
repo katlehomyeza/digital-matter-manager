@@ -38,9 +38,9 @@ namespace Backend.API.Controllers
         {
             var createdDevice = await _deviceRepository.CreateAsync(device);
             
-            await _deviceRepository.UpdateFirmwareAsync(created.DeviceId, createdDevice.FirmwareId);
+            await _deviceRepository.UpdateFirmwareAsync(createdDevice.DeviceId, createdDevice.FirmwareId);
             
-            return CreatedAtAction(nameof(GetById), new { id = created.DeviceId }, createdDevice);
+            return CreatedAtAction(nameof(GetDeviceById), new { id = createdDevice.DeviceId }, createdDevice);
         }
 
         [HttpPut("{id}")]
