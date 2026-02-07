@@ -13,17 +13,22 @@ CREATE TABLE groups (
         REFERENCES groups(group_id) ON DELETE RESTRICT
 );
 
-CREATE TABLE firmware (
-    firmware_id SERIAL PRIMARY KEY,
-    version VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE device_types (
     device_type_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE firmware (
+    firmware_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    device_type_id INTEGER NOT NULL,
+    version VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_device_type
+        FOREIGN KEY (device_type_id)
+        REFERENCES device_types(device_type_id)
 );
 
 CREATE TABLE devices (
@@ -53,6 +58,8 @@ CREATE TABLE device_firmware_history (
         REFERENCES firmware(firmware_id) ON DELETE RESTRICT
 );
 
+CREATE INDEX idx_firmware_device_type_id ON firmware(device_type_id);
+CREATE INDEX idx_firmware_version ON firmware(version);
 CREATE INDEX idx_devices_group_id ON devices(group_id);
 CREATE INDEX idx_devices_firmware_id ON devices(firmware_id);
 CREATE INDEX idx_devices_device_type_id ON devices(device_type_id);

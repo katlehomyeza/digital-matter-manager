@@ -1,15 +1,16 @@
-INSERT INTO firmware (version, created_at) VALUES
-('1.0.0', '2024-01-01 00:00:00'),
-('1.1.0', '2024-03-01 00:00:00'),
-('2.0.0', '2024-06-01 00:00:00')
-ON CONFLICT DO NOTHING;
-
 INSERT INTO device_types (name, description, created_at) VALUES
 ('Temperature Sensor', 'Monitors temperature', '2024-01-01 00:00:00'),
 ('GPS Tracker', 'Tracks location', '2024-01-01 00:00:00'),
 ('Motion Detector', 'Detects movement', '2024-01-01 00:00:00'),
 ('Humidity Sensor', 'Monitors humidity levels', '2024-01-01 00:00:00')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO firmware (name, device_type_id, version, created_at) VALUES
+('Temp Sensor Firmware v1', 1, '1.0.0', '2024-01-01 00:00:00'),
+('Temp Sensor Firmware v1.1', 1, '1.1.0', '2024-03-01 00:00:00'),
+('GPS Tracker Firmware v2', 2, '2.0.0', '2024-06-01 00:00:00')
+ON CONFLICT DO NOTHING;
+
 
 INSERT INTO groups (group_id, name, parent_group_id, created_at) VALUES
 (1, 'Global Operations', NULL, '2024-01-01 00:00:00'),
