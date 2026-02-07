@@ -36,7 +36,7 @@ namespace Backend.API.Controllers
         public async Task<IActionResult> CreateFirmware(Firmware firmware)
         {
             var createdFirmware = await _firmwareRepository.CreateAsync(firmware);
-            return CreatedAtAction(nameof(GetById), new { id = created.FirmwareId }, createdFirmware);
+            return CreatedAtAction(nameof(GetFirmwareById), new { id = createdFirmware.FirmwareId }, createdFirmware);
         }
 
         [HttpPut("{id}")]
