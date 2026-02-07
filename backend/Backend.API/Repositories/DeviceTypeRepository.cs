@@ -18,10 +18,10 @@ namespace Backend.API.Repositories
             using var connection = _db.CreateConnection();
             var sql = @"
                 SELECT 
-                    device_type_id,
-                    name,
-                    description,
-                    created_at
+                    device_type_id as DeviceTypeId,
+                    name as Name,
+                    description as Description,
+                    created_at as CreatedAt
                 FROM device_types 
                 ORDER BY name";
             
@@ -33,10 +33,10 @@ namespace Backend.API.Repositories
             using var connection = _db.CreateConnection();
             var sql = @"
                 SELECT 
-                    device_type_id,
-                    name,
-                    description,
-                    created_at
+                    device_type_id as DeviceTypeId,
+                    name as Name,
+                    description as Description,
+                    created_at as CreatedAt
                 FROM device_types 
                 WHERE device_type_id = @Id";
             
@@ -48,14 +48,14 @@ namespace Backend.API.Repositories
             using var connection = _db.CreateConnection();
             var sql = @"
                 SELECT 
-                    d.device_id,
-                    d.name,
-                    d.serial_number,
-                    d.device_type_id,
-                    d.firmware_id,
-                    d.group_id,
-                    d.added_at,
-                    f.version as firmware_version
+                    d.device_id as DeviceId,
+                    d.name as Name,
+                    d.serial_number as SerialNumber,
+                    d.device_type_id as DeviceTypeId,
+                    d.firmware_id as FirmwareId,
+                    d.group_id as GroupId,
+                    d.added_at as AddedAt,
+                    f.version as FirmwareVersion
                 FROM devices d
                 LEFT JOIN firmware f ON d.firmware_id = f.firmware_id
                 WHERE d.device_type_id = @DeviceTypeId
@@ -70,7 +70,11 @@ namespace Backend.API.Repositories
             var sql = @"
                 INSERT INTO device_types (name, description, created_at) 
                 VALUES (@Name, @Description, @CreatedAt) 
-                RETURNING device_type_id, name, description, created_at";
+                RETURNING 
+                    device_type_id as DeviceTypeId, 
+                    name as Name, 
+                    description as Description, 
+                    created_at as CreatedAt";
             
             deviceType.CreatedAt = DateTime.UtcNow;
             return await connection.QuerySingleAsync<DeviceType>(sql, deviceType);

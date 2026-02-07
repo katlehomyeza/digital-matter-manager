@@ -17,8 +17,14 @@ namespace Backend.API.Repositories
         {
             using var connection = _db.CreateConnection();
             var sql = @"
-                SELECT device_id, name, serial_number, device_type_id, 
-                       firmware_id, group_id, added_at 
+                SELECT 
+                    device_id as DeviceId, 
+                    name as Name, 
+                    serial_number as SerialNumber, 
+                    device_type_id as DeviceTypeId, 
+                    firmware_id as FirmwareId, 
+                    group_id as GroupId, 
+                    added_at as AddedAt
                 FROM devices";
             return await connection.QueryAsync<Device>(sql);
         }
@@ -27,8 +33,14 @@ namespace Backend.API.Repositories
         {
             using var connection = _db.CreateConnection();
             var sql = @"
-                SELECT device_id, name, serial_number, device_type_id, 
-                       firmware_id, group_id, added_at 
+                SELECT 
+                    device_id as DeviceId, 
+                    name as Name, 
+                    serial_number as SerialNumber, 
+                    device_type_id as DeviceTypeId, 
+                    firmware_id as FirmwareId, 
+                    group_id as GroupId, 
+                    added_at as AddedAt
                 FROM devices 
                 WHERE device_id = @Id";
             return await connection.QueryFirstOrDefaultAsync<Device>(sql, new { Id = id });
@@ -40,7 +52,14 @@ namespace Backend.API.Repositories
             var sql = @"
                 INSERT INTO devices (name, serial_number, device_type_id, firmware_id, group_id, added_at) 
                 VALUES (@Name, @SerialNumber, @DeviceTypeId, @FirmwareId, @GroupId, @AddedAt) 
-                RETURNING device_id, name, serial_number, device_type_id, firmware_id, group_id, added_at";
+                RETURNING 
+                    device_id as DeviceId, 
+                    name as Name, 
+                    serial_number as SerialNumber, 
+                    device_type_id as DeviceTypeId, 
+                    firmware_id as FirmwareId, 
+                    group_id as GroupId, 
+                    added_at as AddedAt";
             
             device.AddedAt = DateTime.UtcNow;
             return await connection.QuerySingleAsync<Device>(sql, device);
@@ -94,7 +113,11 @@ namespace Backend.API.Repositories
         {
             using var connection = _db.CreateConnection();
             var sql = @"
-                SELECT device_firmware_history_id, device_id, firmware_id, installed_at 
+                SELECT 
+                    device_firmware_history_id as DeviceFirmwareHistoryId, 
+                    device_id as DeviceId, 
+                    firmware_id as FirmwareId, 
+                    installed_at as InstalledAt
                 FROM device_firmware_history 
                 WHERE device_id = @DeviceId";
             return await connection.QueryAsync<DeviceFirmwareHistory>(sql, new { DeviceId = deviceId });
