@@ -1,0 +1,122 @@
+import { firmwareService } from "../services/firmware.service.js";
+import { applicationState } from '../state.js';
+import { 
+    openModal,
+    createInputField,
+    createSelectField,
+    createActionButton,
+    createInfoRow,
+    displayEmptyState,
+    clearContainer,
+    formatDateTime
+} from '../ui.js';
+
+export async function loadFirmware() {
+    try {
+        applicationState.firmware = await firmwareService.getAllFirmware();
+        renderFirmwareList();
+    } catch (error) {
+        console.error('Failed to load firmware:', error);
+        displayEmptyState('firmwareList', 'No firmware found');
+    }
+}
+
+export function renderFirmwareList() {
+    const container = document.getElementById('firmwareList');
+    clearContainer(container);
+
+    if (applicationState.firmware.length === 0) {
+        displayEmptyState('firmwareList', 'No firmware yet. Create your first firmware!');
+        return;
+    }
+
+    applicationState.firmware.forEach(firmware => {
+        const card = createFirmwareCard(firmware);
+        container.appendChild(card);
+    });
+}
+
+function createFirmwareCard(firmware) {
+    const card = document.createElement('article');
+    card.className = 'item-card';
+
+    const header = document.createElement('header');
+    header.className = 'card-header';
+
+    const title = document.createElement('h3');
+    title.className = 'card-title';
+    title.textContent = firmware.name;
+
+    const actions = document.createElement('section');
+    actions.className = 'card-actions';
+
+    const editButton = createActionButton('✎', 'edit', () => openFirmwareModal(firmware));
+    const deleteButton = createActionButton('✕', 'delete', () => handleFirmwareDeletion(firmware.firmwareId));
+
+    actions.appendChild(editButton);
+    actions.appendChild(deleteButton);
+
+    header.appendChild(title);
+    header.appendChild(actions);
+
+    const content = document.createElement('section');
+    content.className = 'card-content';
+
+    content.appendChild(createInfoRow('Version', firmware.version));
+
+    const deviceType = applicationState.deviceTypes.find(dt => dt.deviceTypeId === firmware.deviceTypeId);
+    content.appendChild(createInfoRow('Device Type', deviceType ? deviceType.name : 'Unknown'));
+
+    content.appendChild(createInfoRow('Created', formatDateTime(firmware.createdAt)));
+
+    card.appendChild(header);
+    card.appendChild(content);
+
+    return card;
+}
+
+export function openFirmwareModal(firmware = null) {
+    const isEditMode = !!firmware;
+    applicationState.currentModal = {
+        type: 'firmware',
+        data: firmware,
+        isEditMode
+    };
+
+    document.getElementById('modalTitle').textContent = isEditMode ? 'Edit Firmware' : 'New Firmware';
+
+    const formFields = document.getElementById('formFields');
+    clearContainer(formFields);
+
+    formFields.appendChild(createInputField('name', 'text', 'Firmware Name', firmware?.name || '', true));
+    formFields.appendChild(createInputField('version', 'text', 'Version', firmware?.version || '', true));
+
+    const deviceTypeOptions = applicationState.deviceTypes.map(dt => ({
+        value: dt.deviceTypeId,
+        label: dt.name
+    }));
+
+    formFields.appendChild(createSelectField('deviceTypeId', 'Device Type', deviceTypeOptions, firmware?.deviceTypeId || '', true));
+
+    openModal();
+}
+
+export async function processFirmwareSubmission(data) {
+    if (applicationState.currentModal.isEditMode) {
+        await firmwareService.updateFirmware(applicationState.currentModal.data.firmwareId, data);
+    } else {
+        await firmwareService.createFirmware(data);
+    }
+    await loadFirmware();
+}
+
+export async function handleFirmwareDeletion(firmwareId) {
+    if (!confirm('Are you sure you want to delete this firmware?')) return;
+
+    try {
+        await firmwareService.deleteFirmware(firmwareId);
+        await loadFirmware();
+    } catch (error) {
+        alert(error.message || 'Failed to delete firmware');
+    }
+}

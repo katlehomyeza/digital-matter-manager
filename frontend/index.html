@@ -4,8 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    
+    <aside class="sidebar">
+        <header class="sidebar-header">
+            <h1>IoT Device Manager</h1>
+        </header>
+        <nav class="sidebar-nav">
+            <button id="navGroups" class="nav-item active">
+                <span class="nav-icon">⬢</span>
+                <span class="nav-label">Groups</span>
+            </button>
+            <button id="navDeviceTypes" class="nav-item">
+                <span class="nav-icon">▣</span>
+                <span class="nav-label">Device Types</span>
+            </button>
+            <button id="navFirmware" class="nav-item">
+                <span class="nav-icon">◧</span>
+                <span class="nav-label">Firmware</span>
+            </button>
+            <button id="navDevices" class="nav-item">
+                <span class="nav-icon">◫</span>
+                <span class="nav-label">Devices</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <section id="groupsSection" class="content-section active">
+            <header class="page-header">
+                <h2>Groups</h2>
+                <button id="addGroupButton" class="add-button">+ New Group</button>
+            </header>
+            <section id="groupsList" class="items-container"></section>
+        </section>
+
+        <section id="deviceTypesSection" class="content-section">
+            <header class="page-header">
+                <h2>Device Types</h2>
+                <button id="addDeviceTypeButton" class="add-button">+ New Device Type</button>
+            </header>
+            <section id="deviceTypesList" class="items-container"></section>
+        </section>
+
+        <section id="firmwareSection" class="content-section">
+            <header class="page-header">
+                <h2>Firmware</h2>
+                <button id="addFirmwareButton" class="add-button">+ New Firmware</button>
+            </header>
+            <section id="firmwareList" class="items-container"></section>
+        </section>
+
+        <section id="devicesSection" class="content-section">
+            <header class="page-header">
+                <h2>Devices</h2>
+                <button id="addDeviceButton" class="add-button">+ New Device</button>
+            </header>
+            <section id="devicesList" class="items-container"></section>
+        </section>
+
+        <section id="historySection" class="content-section">
+            <header class="page-header">
+                <h2>Firmware History</h2>
+            </header>
+            <section id="historyList" class="items-container"></section>
+        </section>
+    </main>
+
+    <aside id="modalOverlay" class="modal-overlay">
+        <section id="modalContent" class="modal-container">
+            <header class="modal-header">
+                <h3 id="modalTitle"></h3>
+                <button id="modalClose" class="close-button">×</button>
+            </header>
+            <form id="modalForm" class="modal-form">
+                <section id="formFields" class="form-fields"></section>
+                <footer class="modal-footer">
+                    <button type="button" id="modalCancel" class="cancel-button">Cancel</button>
+                    <button type="submit" id="modalSubmit" class="submit-button">Save</button>
+                </footer>
+            </form>
+        </section>
+    </aside>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
