@@ -25,7 +25,10 @@ builder.Services.Configure<RouteOptions>(options =>
     options.LowercaseUrls = true;
 });
 
-// Register services
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls("http://*:" + port);
+
+
 builder.Services.AddSingleton<DatabaseService>();
 builder.Services.AddScoped<GroupRepository>();
 builder.Services.AddScoped<FirmwareRepository>();
