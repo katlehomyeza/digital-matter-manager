@@ -5,14 +5,36 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy frontend folder
-        uses: JamesIves/github-pages-deploy-action@v4
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: frontend
+          path: 'frontend'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+      - name: Display URL
+        run: echo "🚀 Deployed to ${{ steps.deployment.outputs.page_url }}"
