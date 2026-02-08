@@ -1,5 +1,5 @@
 export const apiService = {
-    baseUrl: 'http://localhost:5162/api',
+    baseUrl: 'https://digital-matter-manager.onrender.com/api',
 
     async request(endpoint, options = {}) {
         const url = `${this.baseUrl}${endpoint}`;
