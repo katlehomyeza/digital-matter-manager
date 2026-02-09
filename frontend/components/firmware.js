@@ -8,16 +8,23 @@ import {
     createInfoRow,
     displayEmptyState,
     clearContainer,
-    formatDateTime
+    formatDateTime,
+    showLoader,
+    showButtonLoader,
+    hideButtonLoader,
+    showWarning,
+    showConfirm
 } from '../ui.js';
 
 export async function loadFirmware() {
+    showLoader('firmwareList', 'firmware');
+    
     try {
         applicationState.firmware = await firmwareService.getAllFirmware();
         renderFirmwareList();
     } catch (error) {
         console.error('Failed to load firmware:', error);
-        displayEmptyState('firmwareList', 'No firmware found');
+        displayEmptyState('firmwareList', 'Failed to load firmware. Please try again.');
     }
 }
 
@@ -51,7 +58,7 @@ function createFirmwareCard(firmware) {
     actions.className = 'card-actions';
 
     const editButton = createActionButton('✎', 'edit', () => openFirmwareModal(firmware));
-    const deleteButton = createActionButton('✕', 'delete', () => handleFirmwareDeletion(firmware.firmwareId));
+    const deleteButton = createActionButton('✕', 'delete', (e) => handleFirmwareDeletion(firmware.firmwareId, e));
 
     actions.appendChild(editButton);
     actions.appendChild(deleteButton);
@@ -63,7 +70,7 @@ function createFirmwareCard(firmware) {
     content.className = 'card-content';
 
     content.appendChild(createInfoRow('Version', firmware.version));
-
+    console.log(applicationState.deviceTypes);
     const deviceType = applicationState.deviceTypes.find(dt => dt.deviceTypeId === firmware.deviceTypeId);
     content.appendChild(createInfoRow('Device Type', deviceType ? deviceType.name : 'Unknown'));
 
@@ -102,21 +109,55 @@ export function openFirmwareModal(firmware = null) {
 }
 
 export async function processFirmwareSubmission(data) {
-    if (applicationState.currentModal.isEditMode) {
-        await firmwareService.updateFirmware(applicationState.currentModal.data.firmwareId, data);
-    } else {
-        await firmwareService.createFirmware(data);
+    const submitButton = document.querySelector('.modal-actions button[type="submit"]');
+    
+    if (submitButton) {
+        showButtonLoader(submitButton, submitButton.textContent);
     }
-    await loadFirmware();
+    
+    try {
+        if (applicationState.currentModal.isEditMode) {
+            await firmwareService.updateFirmware(applicationState.currentModal.data.firmwareId, data);
+        } else {
+            await firmwareService.createFirmware(data);
+        }
+        await loadFirmware();
+    } catch (error) {
+        console.error('Failed to process firmware:', error);
+        throw error; // Re-throw so handleFormSubmission can catch it
+    } finally {
+        if (submitButton) {
+            hideButtonLoader(submitButton);
+        }
+    }
 }
 
-export async function handleFirmwareDeletion(firmwareId) {
-    if (!confirm('Are you sure you want to delete this firmware?')) return;
+export async function handleFirmwareDeletion(firmwareId, event) {
+    const confirmed = await showConfirm(
+        'Are you sure you want to delete this firmware? This action cannot be undone.',
+        'Delete Firmware',
+        {
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            confirmClass: 'btn-danger'
+        }
+    );
+    
+    if (!confirmed) return
+
+    const deleteButton = event?.currentTarget;
+    
+    if (deleteButton) {
+        showButtonLoader(deleteButton, deleteButton.textContent);
+    }
 
     try {
         await firmwareService.deleteFirmware(firmwareId);
         await loadFirmware();
     } catch (error) {
-        alert(error.message || 'Failed to delete firmware');
+        await showWarning(error.message || 'Failed to delete firmware', "Deletion Error");
+        if (deleteButton) {
+            hideButtonLoader(deleteButton);
+        }
     }
 }
