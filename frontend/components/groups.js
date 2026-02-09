@@ -10,16 +10,23 @@ import {
     createSimpleCard,
     displayEmptyState,
     clearContainer,
-    formatDateTime
+    formatDateTime,
+    showLoader,
+    showButtonLoader,
+    hideButtonLoader,
+    showWarning,
+    showConfirm
 } from '../ui.js';
 
 export async function loadGroups() {
+    showLoader('groupsList', 'groups');
+    
     try {
         applicationState.groups = await groupService.getAllGroups();
         renderGroupsList();
     } catch (error) {
         console.error('Failed to load groups:', error);
-        displayEmptyState('groupsList', 'No groups found');
+        displayEmptyState('groupsList', 'Failed to load groups. Please try again.');
     }
 }
 
@@ -60,7 +67,7 @@ function createGroupElement(group) {
     actions.addEventListener('click', (event) => event.stopPropagation());
 
     const editButton = createActionButton('✎', 'edit', () => openGroupModal(group));
-    const deleteButton = createActionButton('✕', 'delete', () => handleGroupDeletion(group.groupId));
+    const deleteButton = createActionButton('✕', 'delete', (e) => handleGroupDeletion(group.groupId, e));
 
     actions.appendChild(editButton);
     actions.appendChild(deleteButton);
@@ -93,14 +100,21 @@ function createGroupElement(group) {
         childrenContainer.style.marginTop = 'var(--spacing-md)';
         childrenContainer.style.paddingLeft = 'var(--spacing-lg)';
         
+        const indicator = document.createElement('p');
+        indicator.textContent = 'Child groups:';
+        indicator.style.marginBottom = 'var(--spacing-sm)';
+        childrenContainer.appendChild(indicator);
         childGroups.forEach(childGroup => {
-            const childCard = createSimpleCard(childGroup.name, () => openGroupModal(childGroup), () => handleGroupDeletion(childGroup.groupId));
+            const childCard = createSimpleCard(
+                childGroup.name, 
+                () => openGroupModal(childGroup), 
+                (e) => handleGroupDeletion(childGroup.groupId, e)
+            );
             childrenContainer.appendChild(childCard);
         });
         
         body.appendChild(childrenContainer);
     }
-
     content.appendChild(body);
 
     header.addEventListener('click', () => {
@@ -141,21 +155,55 @@ export function openGroupModal(group = null) {
 }
 
 export async function processGroupSubmission(data) {
-    if (applicationState.currentModal.isEditMode) {
-        await groupService.updateGroup(applicationState.currentModal.data.groupId, data);
-    } else {
-        await groupService.createGroup(data);
+    const submitButton = document.querySelector('.modal-actions button[type="submit"]');
+    
+    if (submitButton) {
+        showButtonLoader(submitButton, submitButton.textContent);
     }
-    await loadGroups();
+    
+    try {
+        if (applicationState.currentModal.isEditMode) {
+            await groupService.updateGroup(applicationState.currentModal.data.groupId, data);
+        } else {
+            await groupService.createGroup(data);
+        }
+        await loadGroups();
+    } catch (error) {
+        console.error('Failed to process group:', error);
+        throw error; // Re-throw so handleFormSubmission can catch it
+    } finally {
+        if (submitButton) {
+            hideButtonLoader(submitButton);
+        }
+    }
 }
 
-export async function handleGroupDeletion(groupId) {
-    if (!confirm('Are you sure you want to delete this group?')) return;
+export async function handleGroupDeletion(groupId, event) {
+    const confirmed = await showConfirm(
+        'Are you sure you want to delete this group? This action cannot be undone.',
+        'Delete Group',
+        {
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            confirmClass: 'btn-danger'
+        }
+    );
+    
+    if (!confirmed) return
+
+    const deleteButton = event?.currentTarget;
+    
+    if (deleteButton) {
+        showButtonLoader(deleteButton, deleteButton.textContent);
+    }
 
     try {
         await groupService.deleteGroup(groupId);
         await loadGroups();
     } catch (error) {
-        alert(error.message || 'Failed to delete group');
+        await showWarning(error.message || 'Failed to delete group', "Deletion Error");
+        if (deleteButton) {
+            hideButtonLoader(deleteButton);
+        }
     }
 }

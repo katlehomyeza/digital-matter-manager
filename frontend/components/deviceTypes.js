@@ -8,16 +8,22 @@ import {
     createInfoRow,
     displayEmptyState,
     clearContainer,
-    formatDateTime
+    formatDateTime,
+    showLoader,
+    showButtonLoader,
+    hideButtonLoader,
+    showWarning,
+    showConfirm
 } from '../ui.js';
 
 export async function loadDeviceTypes() {
+    showLoader('deviceTypesList', "device types");
     try {
         applicationState.deviceTypes = await deviceTypeService.getAllDeviceTypes();
         renderDeviceTypesList();
     } catch (error) {
         console.error('Failed to load device types:', error);
-        displayEmptyState('deviceTypesList', 'No device types found');
+        displayEmptyState('deviceTypesList', 'Failed to load device types. Please try again.');
     }
 }
 
@@ -51,7 +57,7 @@ function createDeviceTypeCard(deviceType) {
     actions.className = 'card-actions';
 
     const editButton = createActionButton('✎', 'edit', () => openDeviceTypeModal(deviceType));
-    const deleteButton = createActionButton('✕', 'delete', () => handleDeviceTypeDeletion(deviceType.deviceTypeId));
+    const deleteButton = createActionButton('✕', 'delete', (e) => handleDeviceTypeDeletion(deviceType.deviceTypeId, e));
 
     actions.appendChild(editButton);
     actions.appendChild(deleteButton);
@@ -94,21 +100,56 @@ export function openDeviceTypeModal(deviceType = null) {
 }
 
 export async function processDeviceTypeSubmission(data) {
-    if (applicationState.currentModal.isEditMode) {
-        await deviceTypeService.updateDeviceType(applicationState.currentModal.data.deviceTypeId, data);
-    } else {
-        await deviceTypeService.createDeviceType(data);
+    const submitButton = document.querySelector('.modal-actions button[type="submit"]');
+    
+    if (submitButton) {
+        showButtonLoader(submitButton, submitButton.textContent);
     }
-    await loadDeviceTypes();
+    
+    try {
+        if (applicationState.currentModal.isEditMode) {
+            await deviceTypeService.updateDeviceType(applicationState.currentModal.data.deviceTypeId, data);
+        } else {
+            await deviceTypeService.createDeviceType(data);
+        }
+        await loadDeviceTypes();
+    } catch (error) {
+        console.error('Failed to process device type:', error);
+        throw error; // Re-throw so handleFormSubmission can catch it
+    } finally {
+        if (submitButton) {
+            hideButtonLoader(submitButton);
+        }
+    }
 }
 
-export async function handleDeviceTypeDeletion(deviceTypeId) {
-    if (!confirm('Are you sure you want to delete this device type?')) return;
+export async function handleDeviceTypeDeletion(deviceTypeId, event) {
+
+    const confirmed = await showConfirm(
+        'Are you sure you want to delete this device type? This action cannot be undone.',
+        'Delete Device Type',
+        {
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            confirmClass: 'btn-danger'
+        }
+    );
+    
+    if (!confirmed) return
+
+    const deleteButton = event?.currentTarget;
+    
+    if (deleteButton) {
+        showButtonLoader(deleteButton, deleteButton.textContent);
+    }
 
     try {
         await deviceTypeService.deleteDeviceType(deviceTypeId);
         await loadDeviceTypes();
     } catch (error) {
-        alert(error.message || 'Failed to delete device type');
+        await showWarning(error.message || 'Failed to delete device type', "Deletion Error");
+        if (deleteButton) {
+            hideButtonLoader(deleteButton);
+        }
     }
 }
