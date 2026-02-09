@@ -199,3 +199,47 @@ export function formatDateTime(dateTimeString) {
     const date = new Date(dateTimeString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
+
+export function showLoader(containerId, component = 'data') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    clearContainer(container);
+    
+    const loader = document.createElement('div');
+    loader.className = 'loader-container';
+    
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    
+    const text = document.createElement('p');
+    text.className = 'loader-text';
+    text.textContent = `Loading ${component}...`;
+    
+    loader.appendChild(spinner);
+    loader.appendChild(text);
+    container.appendChild(loader);
+}
+
+export function showButtonLoader(button, originalText) {
+    button.disabled = true;
+    button.dataset.originalText = originalText;
+    
+    button.textContent = '';
+    
+    const spinnerSpan = document.createElement('span');
+    spinnerSpan.className = 'button-spinner';
+    
+    const textSpan = document.createElement('span');
+    textSpan.textContent = 'Processing...';
+    
+    button.appendChild(spinnerSpan);
+    button.appendChild(textSpan);
+}
+
+export function hideButtonLoader(button) {
+    button.disabled = false;
+    const originalText = button.dataset.originalText || 'Submit';
+    button.textContent = originalText;
+    delete button.dataset.originalText;
+}
