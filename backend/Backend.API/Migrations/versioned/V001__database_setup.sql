@@ -24,7 +24,7 @@ CREATE TABLE firmware (
     firmware_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     device_type_id INTEGER NOT NULL,
-    version VARCHAR(50) NOT NULL UNIQUE,
+    version VARCHAR(50) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_device_type
         FOREIGN KEY (device_type_id)
