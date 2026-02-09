@@ -19,10 +19,7 @@ import { loadDeviceTypes } from "./deviceTypes.js";
 
 export async function loadFirmware() {
     showLoader('firmwareList', 'firmware');
-    if (applicationState.deviceTypes.length === 0) {
-            await loadDeviceTypes(); 
-        }
-    
+
     try {
         applicationState.firmware = await firmwareService.getAllFirmware();
         renderFirmwareList();

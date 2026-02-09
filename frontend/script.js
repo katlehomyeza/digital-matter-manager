@@ -79,9 +79,9 @@ async function loadAllData() {
     try {
         await Promise.all([
             loadGroups(),
-            loadDeviceTypes(),
-            loadFirmware()
+            loadDeviceTypes()
         ]);
+        await loadFirmware();
         await loadDevices();
     } catch (error) {
         console.error('Failed to load application data:', error);
