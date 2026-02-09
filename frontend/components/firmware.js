@@ -70,9 +70,10 @@ function createFirmwareCard(firmware) {
     content.className = 'card-content';
 
     content.appendChild(createInfoRow('Version', firmware.version));
-    console.log(applicationState.deviceTypes);
     const deviceType = applicationState.deviceTypes.find(dt => dt.deviceTypeId === firmware.deviceTypeId);
-    content.appendChild(createInfoRow('Device Type', deviceType ? deviceType.name : 'Unknown'));
+    if (deviceType) {
+        content.appendChild(createInfoRow('Device Type', deviceType.name));
+    }
 
     content.appendChild(createInfoRow('Created', formatDateTime(firmware.createdAt)));
 
