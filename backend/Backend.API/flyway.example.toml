@@ -1,0 +1,17 @@
+[environments.default]
+url = "jdbc:postgresql://localhost:5432/my_database"
+user = "db_user"
+password = "strong_password"
+
+[flyway]
+locations = ["filesystem:./Migrations"]
+
+sqlMigrationPrefix = "V"
+
+sqlMigrationSeparator = "__"
+
+sqlMigrationSuffixes = [".sql"]
+
+repeatableSqlMigrationPrefix = "R"
+
+cleanDisabled = false
