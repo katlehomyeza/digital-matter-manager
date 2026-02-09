@@ -122,5 +122,38 @@ namespace Backend.API.Repositories
                 WHERE device_id = @DeviceId";
             return await connection.QueryAsync<DeviceFirmwareHistory>(sql, new { DeviceId = deviceId });
         }
+
+        public async Task<bool> SerialNumberExistsAsync(string serialNumber)
+        {
+            using var connection = _db.CreateConnection();
+
+            var sql = @"
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM devices 
+                    WHERE serial_number = @SerialNumber
+                )";
+
+            return await connection.ExecuteScalarAsync<bool>(sql, new { SerialNumber = serialNumber });
+        }
+
+        public async Task<bool> SerialNumberExistsForOtherDeviceAsync(int deviceId, string serialNumber)
+        {
+            using var connection = _db.CreateConnection();
+
+            var sql = @"
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM devices 
+                    WHERE serial_number = @SerialNumber
+                    AND device_id != @DeviceId
+                )";
+
+            return await connection.ExecuteScalarAsync<bool>(sql, new 
+            { 
+                SerialNumber = serialNumber, 
+                DeviceId = deviceId 
+            });
+        }
     }
 }
