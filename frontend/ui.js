@@ -10,6 +10,144 @@ export function closeModal() {
     applicationState.currentModal = null;
 }
 
+export function showWarning(message, title = 'Warning') {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay active warning-modal';
+        overlay.id = 'warningModalOverlay';
+
+        const modal = document.createElement('div');
+        modal.className = 'modal warning';
+
+        const header = document.createElement('div');
+        header.className = 'modal-header';
+        
+        const titleElement = document.createElement('h2');
+        titleElement.textContent = title;
+        header.appendChild(titleElement);
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        
+        const messageElement = document.createElement('p');
+        messageElement.textContent = message;
+        content.appendChild(messageElement);
+
+        const footer = document.createElement('div');
+        footer.className = 'modal-footer';
+        
+        const okButton = document.createElement('button');
+        okButton.className = 'btn btn-primary';
+        okButton.textContent = 'OK';
+        okButton.onclick = () => {
+            overlay.remove();
+            resolve();
+        };
+        
+        footer.appendChild(okButton);
+
+        modal.appendChild(header);
+        modal.appendChild(content);
+        modal.appendChild(footer);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Focus the OK button
+        setTimeout(() => okButton.focus(), 100);
+
+        // Allow Enter key to close
+        const handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                overlay.remove();
+                document.removeEventListener('keypress', handleKeyPress);
+                resolve();
+            }
+        };
+        document.addEventListener('keypress', handleKeyPress);
+    });
+}
+
+// Confirm Modal - replaces confirm()
+export function showConfirm(message, title = 'Confirm', options = {}) {
+    const {
+        confirmText = 'Confirm',
+        cancelText = 'Cancel',
+        confirmClass = 'btn-danger'
+    } = options;
+
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay active confirm-modal';
+        overlay.id = 'confirmModalOverlay';
+
+        const modal = document.createElement('div');
+        modal.className = 'modal confirm';
+
+        const header = document.createElement('div');
+        header.className = 'modal-header';
+        
+        const titleElement = document.createElement('h2');
+        titleElement.textContent = title;
+        header.appendChild(titleElement);
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        
+        const messageElement = document.createElement('p');
+        messageElement.textContent = message;
+        content.appendChild(messageElement);
+
+        const footer = document.createElement('div');
+        footer.className = 'modal-footer';
+        
+        const cancelButton = document.createElement('button');
+        cancelButton.className = 'btn btn-secondary';
+        cancelButton.textContent = cancelText;
+        cancelButton.onclick = () => {
+            overlay.remove();
+            resolve(false);
+        };
+
+        const confirmButton = document.createElement('button');
+        confirmButton.className = `btn ${confirmClass}`;
+        confirmButton.textContent = confirmText;
+        confirmButton.onclick = () => {
+            overlay.remove();
+            resolve(true);
+        };
+        
+        footer.appendChild(cancelButton);
+        footer.appendChild(confirmButton);
+
+        modal.appendChild(header);
+        modal.appendChild(content);
+        modal.appendChild(footer);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Focus the cancel button by default (safer)
+        setTimeout(() => cancelButton.focus(), 100);
+
+        // Handle Escape key to cancel
+        const handleKeyPress = (e) => {
+            if (e.key === 'Escape') {
+                overlay.remove();
+                document.removeEventListener('keydown', handleKeyPress);
+                resolve(false);
+            }
+        };
+        document.addEventListener('keydown', handleKeyPress);
+
+        // Close on overlay click
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+                resolve(false);
+            }
+        };
+    });
+}
+
 export async function handleFormSubmission(event, processGroupSubmission, processDeviceTypeSubmission, processFirmwareSubmission, processDeviceSubmission) {
     event.preventDefault();
 
@@ -41,7 +179,7 @@ export async function handleFormSubmission(event, processGroupSubmission, proces
 
         closeModal();
     } catch (error) {
-        alert(error.message || 'An error occurred while saving');
+        await showWarning(error.message || 'An error occurred while saving');
     }
 }
 
