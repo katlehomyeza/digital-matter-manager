@@ -13,13 +13,15 @@ export const apiService = {
 
         try {
             const response = await fetch(url, config);
-            
+    
             if (!response.ok) {
-                const error = await response.json().catch(() => ({ message: 'Request failed' }));
+                const error = await response.json().catch(() => ({}));
                 throw new Error(error.message || `HTTP error ${response.status}`);
             }
-
-            return await response.json();
+            return (response.status === 204 || 
+                    !response.headers.get('content-type')?.includes('application/json'))
+                ? null
+                : await response.json();       
         } catch (error) {
             console.error('API request failed:', error);
             throw error;
