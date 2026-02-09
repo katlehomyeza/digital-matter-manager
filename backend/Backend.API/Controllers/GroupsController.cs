@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.API.Models;
 using Backend.API.Repositories;
+using Backend.API.DTOs;
+
 
 namespace Backend.API.Controllers
 {
@@ -27,7 +29,7 @@ namespace Backend.API.Controllers
         {
             var group = await _groupRepository.GetByIdAsync(id);
             if (group == null){
-                return NotFound();
+                return NotFound("The group with ID " + id + "was not found");
             }
             return Ok(group);
         }
@@ -40,16 +42,26 @@ namespace Backend.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGroup(int id, Group group)
+        public async Task<IActionResult> UpdateGroup(int id, UpdateGroupDto groupDto)
         {
-            if (id != group.GroupId){
-                return BadRequest();
+            var existingGroup = await _groupRepository.GetByIdAsync(id);
+            
+            if (existingGroup == null)
+            {
+                return NotFound("This group does not exist");
             }
-            var updatedGroup = await _groupRepository.UpdateAsync(group);
-            if (!updatedGroup){
-                return NotFound();
+            
+            existingGroup.Name = groupDto.Name;
+            existingGroup.ParentGroupId = groupDto.ParentGroupId;
+            
+            var updateResult = await _groupRepository.UpdateAsync(existingGroup);
+            
+            if (!updateResult)
+            {
+                return StatusCode(500, "An error occurred while updating the group");
             }
-            return NoContent();
+            
+            return Ok();
         }
 
         [HttpDelete("{id}")]
@@ -59,7 +71,7 @@ namespace Backend.API.Controllers
             if (!deletedGroup){
                 return NotFound();
             }
-            return NoContent();
+            return Ok();
         }
     }
 }
