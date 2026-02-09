@@ -15,9 +15,13 @@ import {
     showWarning,
     showConfirm
 } from '../ui.js';
+import { loadDeviceTypes } from "./deviceTypes.js";
 
 export async function loadFirmware() {
     showLoader('firmwareList', 'firmware');
+    if (applicationState.deviceTypes.length === 0) {
+            await loadDeviceTypes(); 
+        }
     
     try {
         applicationState.firmware = await firmwareService.getAllFirmware();
@@ -70,6 +74,8 @@ function createFirmwareCard(firmware) {
     content.className = 'card-content';
 
     content.appendChild(createInfoRow('Version', firmware.version));
+    console.log('Looking for deviceTypeId:', firmware.deviceTypeId, typeof firmware.deviceTypeId);
+console.log('Available deviceTypes:', applicationState.deviceTypes);
     const deviceType = applicationState.deviceTypes.find(dt => dt.deviceTypeId === firmware.deviceTypeId);
     if (deviceType) {
         content.appendChild(createInfoRow('Device Type', deviceType.name));
