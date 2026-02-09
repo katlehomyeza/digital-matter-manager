@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.API.Models;
+using Backend.API.DTOs;
 using Backend.API.Repositories;
 
 namespace Backend.API.Controllers
@@ -27,7 +28,7 @@ namespace Backend.API.Controllers
         {
             var firmware = await _firmwareRepository.GetByIdAsync(id);
             if (firmware == null){
-                return NotFound();
+                return NotFound("The firmware with ID " + id + "was not found");
             }
             return Ok(firmware);
         }
@@ -40,16 +41,32 @@ namespace Backend.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateFirmware(int id, Firmware firmware)
+        public async Task<IActionResult> UpdateFirmware(int id, FirmwareDTO firmware)
         {
-            if (id != firmware.FirmwareId){
-                return BadRequest();
+            if (firmware == null)
+            {
+                return BadRequest("Firmware data is required");
             }
-            var updatedFirmware = await _firmwareRepository.UpdateAsync(firmware);
-            if (!updatedFirmware){
-                return NotFound();
+
+            var existingFirmware = await _firmwareRepository.GetByIdAsync(id);
+            
+            if (existingFirmware == null)
+            {
+                return NotFound("Firmware not found");
             }
-            return NoContent();
+
+            existingFirmware.Version = firmware.Version;
+            existingFirmware.DeviceTypeId = firmware.DeviceTypeId;
+            existingFirmware.Name = firmware.Name;
+
+            var updated = await _firmwareRepository.UpdateAsync(existingFirmware);
+            
+            if (!updated)
+            {
+                return StatusCode(500, "Failed to update firmware");
+            }
+
+            return Ok();
         }
 
         [HttpDelete("{id}")]
@@ -59,7 +76,7 @@ namespace Backend.API.Controllers
             if (!deletedFirmware){
                 return NotFound();
             }
-            return NoContent();
+            return Ok();
         }
     }
 }

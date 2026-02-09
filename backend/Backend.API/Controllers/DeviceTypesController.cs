@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Backend.API.Models;
+using Backend.API.DTOs;
 using Backend.API.Repositories;
 
 namespace Backend.API.Controllers
@@ -29,7 +30,7 @@ namespace Backend.API.Controllers
 
             if (deviceType == null)
             {
-                return NotFound();
+                return NotFound("The device type with ID " + id + "was not found");
             }
 
             return Ok(deviceType);
@@ -50,21 +51,26 @@ namespace Backend.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, DeviceType deviceType)
+        public async Task<IActionResult> Update(int id, DeviceTypeDTO deviceTypeDto)
         {
-            if (id != deviceType.DeviceTypeId)
+            var existingDeviceType = await _deviceTypeRepository.GetByIdAsync(id);
+            
+            if (existingDeviceType == null)
             {
-                return BadRequest();
+                return NotFound("The device type with ID " + id + "was not found");
             }
 
-            var updated = await _deviceTypeRepository.UpdateAsync(deviceType);
-
+            existingDeviceType.Name = deviceTypeDto.Name;
+            existingDeviceType.Description = deviceTypeDto.Description;
+            
+            var updated = await _deviceTypeRepository.UpdateAsync(existingDeviceType);
+            
             if (!updated)
             {
-                return NotFound();
+                return StatusCode(500, "An error occurred while updating the device type");
             }
-
-            return NoContent();
+            
+            return Ok();
         }
 
         [HttpDelete("{id}")]
@@ -84,7 +90,7 @@ namespace Backend.API.Controllers
                 return NotFound();
             }
 
-            return NoContent();
+            return Ok();
         }
     }
 }

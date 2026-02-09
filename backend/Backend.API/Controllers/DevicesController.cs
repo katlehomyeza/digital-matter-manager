@@ -27,7 +27,7 @@ namespace Backend.API.Controllers
         {
             var device = await _deviceRepository.GetByIdAsync(id);
             if (device == null){
-                return NotFound(); 
+                return NotFound("The device with ID " + id + "was not found"); 
             }
                
             return Ok(device);
@@ -36,26 +36,67 @@ namespace Backend.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDevice(Device device)
         {
+            if (device == null)
+            {
+                return BadRequest("Device payload is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(device.SerialNumber))
+            {
+                return BadRequest("Serial number is required");
+            }
+
+            var serialExists = await _deviceRepository.SerialNumberExistsAsync(device.SerialNumber);
+            if (serialExists)
+            {
+                return BadRequest("A device with this serial number already exists");
+            }
+
             var createdDevice = await _deviceRepository.CreateAsync(device);
-            
-            await _deviceRepository.UpdateFirmwareAsync(createdDevice.DeviceId, createdDevice.FirmwareId);
-            
-            return CreatedAtAction(nameof(GetDeviceById), new { id = createdDevice.DeviceId }, createdDevice);
+
+            if (createdDevice.FirmwareId > 0)
+            {
+                await _deviceRepository.UpdateFirmwareAsync(createdDevice.DeviceId, createdDevice.FirmwareId);
+            }
+
+            return CreatedAtAction(
+                nameof(GetDeviceById), 
+                new { id = createdDevice.DeviceId }, 
+                createdDevice
+            );
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDevice(int id, Device device)
         {
-            if (id != device.DeviceId){
-               return BadRequest(); 
+            if (device == null || string.IsNullOrWhiteSpace(device.SerialNumber))
+                return BadRequest("Valid device with serial number required");
+
+            var existingDevice = await _deviceRepository.GetByIdAsync(id);
+            if (existingDevice == null)
+            {
+               return NotFound("The device with ID " + id + "was not found"); 
+            } 
+
+            if (existingDevice.SerialNumber != device.SerialNumber)
+            {
+                var serialExists = await _deviceRepository.SerialNumberExistsForOtherDeviceAsync(id, device.SerialNumber);
+                if (serialExists) return BadRequest("Serial number already in use");
             }
-            
-            var updatedDevice = await _deviceRepository.UpdateAsync(device);
-            if (!updatedDevice){
-                return NotFound();
+
+            existingDevice.SerialNumber = device.SerialNumber;
+            existingDevice.DeviceTypeId = device.DeviceTypeId;
+            existingDevice.GroupId = device.GroupId;
+            existingDevice.Name = device.Name;
+
+            if (device.FirmwareId != existingDevice.FirmwareId && device.FirmwareId > 0)
+            {
+                await _deviceRepository.UpdateFirmwareAsync(id, device.FirmwareId);
+                existingDevice.FirmwareId = device.FirmwareId;
             }
-            
-            return NoContent();
+
+            var success = await _deviceRepository.UpdateAsync(existingDevice);
+            return success ? NoContent() : StatusCode(500, "Update failed");
         }
 
         [HttpDelete("{id}")]
@@ -65,7 +106,7 @@ namespace Backend.API.Controllers
             if (!deletedDevice){
                 return NotFound();
             }
-            return NoContent();
+            return Ok();
         }
 
         [HttpPut("{id}/firmware")]
@@ -75,7 +116,7 @@ namespace Backend.API.Controllers
             if (!updatedFirmware){
                 return NotFound();
             }
-            return NoContent();
+            return Ok();
         }
 
         [HttpGet("{id}/firmware-history")]
