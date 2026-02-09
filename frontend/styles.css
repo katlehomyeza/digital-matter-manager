@@ -508,6 +508,52 @@ button:disabled {
     font-size: var(--font-base);
     font-weight: 500;
 }
+.warning-modal .modal-container,
+.confirm-modal .modal-container {
+    max-width: 30rem;
+    background: var(--color-white);
+}
+
+.warning-modal .modal-header,
+.confirm-modal .modal-header {
+    background: var(--color-navy-medium);
+    color: var(--color-white);
+}
+
+.warning-modal .modal-header h3,
+.confirm-modal .modal-header h3 {
+    color: var(--color-white);
+}
+
+.warning-modal .modal-content,
+.confirm-modal .modal-content {
+    background: var(--color-white);
+    padding: var(--spacing-lg);
+}
+
+.warning-modal .modal-footer,
+.confirm-modal .modal-footer {
+    background: var(--color-white);
+}
+
+.btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-base);
+}
+
+.btn-secondary {
+    background: var(--color-gray-medium);
+    color: var(--color-white);
+}
+
+.btn-danger {
+    background: var(--color-error);
+    color: var(--color-white);
+}
+
 
 @media (max-width: 768px) {
     body {
